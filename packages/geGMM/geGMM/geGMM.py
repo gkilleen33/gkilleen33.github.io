@@ -20,15 +20,15 @@ class spatialGMM(GMM):
     ----------
     latitude: A numpy array containing the latitude points for spatial SE calculations.
     longitude: A numpy array containing the longitude points for spatial SE calculations.
-    bartlett: (Optional, default False) If False, uses a uniform distance kernel. If True uses Bartlett kernel. 
+    kernel (str default 'uniform'): If 'uniform' uses a uniform kernel. If 'bartlett' uses a Bartlett kernel. If 'pos_def' uses (1 - dist/dist_cutoff)^2 to ensure positive definite covariance. 
     distance_cutoff: (Optional, default 10) Distance cutoff for spatial SEs in km.
     """
     
     def __init__(self, endog, exog, instrument, latitude, longitude, k_moms=None, k_params=None,
-                 missing='none', bartlett=False, distance_cutoff=10, **kwds):
+                 missing='none', kernel='uniform', distance_cutoff=10, **kwds):
         
         instrument = self._check_inputs(instrument, endog, latitude, longitude) # attaches if needed
-        self.kernel = self._calc_kernel(latitude, longitude, distance_cutoff, bartlett=bartlett)  # Done once here so not recalculated on each iteration
+        self.kernel = self._calc_kernel(latitude, longitude, distance_cutoff, kernel=kernel)  # Done once here so not recalculated on each iteration
         super(GMM, self).__init__(endog, exog, missing=missing,
                 instrument=instrument)
 #         self.endog = endog
@@ -63,16 +63,18 @@ class spatialGMM(GMM):
                 raise ValueError("instrument is not the same length as endog")
         return instrument
     
-    def _calc_kernel(self, lat, lon, cutoff=10, bartlett=False):
+    def _calc_kernel(self, lat, lon, cutoff=10, kernel='uniform'):
         K = np.empty([len(lat), len(lat)])
         for i in range(len(lat)):
             lati = lat.iloc[i]
             loni = lon.iloc[i]
             distancei = self._calc_distance(lati, loni, lat, lon)
-            if bartlett:
-                Ki = [d/cutoff if d <= cutoff else 0 for d in distancei]
-            else:
+            if kernel == 'uniform':
                 Ki = [1 if d <= cutoff else 0 for d in distancei]
+            elif kernel == 'bartlett':
+                Ki = [d/cutoff if d <= cutoff else 0 for d in distancei]
+            elif kernel == 'pos_def':
+                Ki = [(d/cutoff)**2 if d <= cutoff else 0 for d in distancei]
             K[i,:] = Ki 
         return K 
     
@@ -118,7 +120,7 @@ class geGMM(spatialGMM):
     pweights: (Optional) variable name containing inverse probability weights 
     controls: (Optional) Patsy formula with controls to partial out 
     distance_cutoff: Default 10km: spatial distance cutoff for Conley error estimation in km
-    bartlett: Default False, if True uses a Bartlett Kernel instead of uniform 
+    kernel (str default 'uniform'): If 'uniform' uses a uniform kernel. If 'bartlett' uses a Bartlett kernel. If 'pos_def' uses (1 - dist/dist_cutoff)^2 to ensure positive definite covariance. 
     parameters: A list of parameter names, as strings. Optional if simple IV case. Required if using other moments.
 
     Attributes
@@ -148,7 +150,7 @@ class geGMM(spatialGMM):
     
     def __init__(self, data, dep_vars, exog, instruments, moments=None, 
                  latitude='latitude', longitude='longitude', pweights=None, 
-                 controls=None, distance_cutoff=10, bartlett=False, parameters=None, *args, **kwds):
+                 controls=None, distance_cutoff=10, kernel='uniform', parameters=None, *args, **kwds):
 
         # If dep_vars specified as a string, convert to a list 
         if isinstance(dep_vars, str):
@@ -258,7 +260,7 @@ class geGMM(spatialGMM):
             kwds.setdefault('k_params', self.n_exog)
         super(geGMM, self).__init__(endog = endog, exog = exog, instrument=instrument,
                                     latitude=df_full[latitude], longitude=df_full[longitude], 
-                                    bartlett=bartlett, distance_cutoff=distance_cutoff, *args, **kwds)
+                                    kernel=kernel, distance_cutoff=distance_cutoff, *args, **kwds)
         
         if parameters is not None:
             self.set_param_names(parameters)
@@ -323,8 +325,8 @@ class geGMM(spatialGMM):
 
 def calculate_optimal_radii(data, endog, dynamic_exog, dynamic_instruments, static_instruments=None, 
                             static_exog=None, static_controls=None, dynamic_controls=None, monotonic=True,
-                            latitude='latitude', longitude='longitude', bartlett=False, distance_cutoff=10, pweights=None, maxiter=1,
-                            optim_method='bfgs', optim_args=None):
+                            latitude='latitude', longitude='longitude', kernel='uniform', distance_cutoff=10, pweights=None, maxiter=1,
+                            optim_method='bfgs', optim_args=None, addBLcontrols='enterprise'):
     """
     Figures out the optimal radius for a scalar outcome and a set of instruments by minimizing BIC. Only supports a single outcome.
 
@@ -340,12 +342,14 @@ def calculate_optimal_radii(data, endog, dynamic_exog, dynamic_instruments, stat
         monotonic: (Default True). If True, stops once BIC increases and returns the prior value. Faster but less robust. 
         latitude (str): Name of latitude variable in data 
         longitude (str): Name of longitude variable in data
-        bartlett (default False): If True, uses a Bartlett kernel. If False uses a uniform kernel. 
+        kernel (str default 'uniform'): If 'uniform' uses a uniform kernel. If 'bartlett' uses a Bartlett kernel. If 'pos_def' uses (1 - dist/dist_cutoff)^2 to ensure positive definite covariance. 
         distance_cutoff (float default 10): Distance cutoff for kernel in km 
         pweights (optional, str): Name of column containing inverse probability weights in data 
         maxiter: (int default 1): Maximum number of GMM iterations. Default is 1, but if using 2 step GMM performance is better with set to 2.
         optim_method: (str, default 'bfgs') : scipy optimization method. bfgs is default for speed, 'nm' is more robust but slower. 
         optim_args: (optional, dict) : dictionary of arguments for the optimization algorithm (e.g. increase max iterations)
+        addBLcontrols: (str, default 'enterprise') : searches for and adds BL controls if available. Default is to add enterprise BL controls.
+            Currently only enterprise supported.
 
     Returns:
         opt_r, selected_exogenous, selected_instruments, selected_controls 
@@ -360,17 +364,41 @@ def calculate_optimal_radii(data, endog, dynamic_exog, dynamic_instruments, stat
     controls_dict = dict()
     exog_dict = dict() 
     instruments_dict = dict()
+
+    if addBLcontrols == 'enterprise':
+        # Only store (1) PPP version of variables in the enterprise data, (2) no r_ since real and nominal are equivalent at BL 
+        endog_bl = endog.replace('r_', '')
+        if '_PPP' not in endog_bl:
+            if '_wins' in endog_bl:
+                tmp = endog_bl.replace('_wins', '')
+                endog_bl = tmp + '_PPP_wins_vBL'
+            else:
+                endog_bl = endog_bl + '_PPP_vBL'
+        else:
+            endog_bl = endog_bl + '_vBL'
+        Mendog_bl = 'M' + endog_bl
+        if (endog_bl in data.columns) and (Mendog_bl in data.columns): 
+            if static_controls is None:
+                static_controls = 'C(ent_type):{} + C(ent_type):{}'.format(endog_bl, Mendog_bl)
+            else:
+                static_controls = static_controls + ' + C(ent_type):{} + C(ent_type):{}'.format(endog_bl, Mendog_bl)
     
     for r in range(2, 22, 2):
         r2 = r - 2 
         if r == 2:
             add = 0 
             for inst in dynamic_instruments:
+                if inst.count('{}')/2 == 1: 
+                    rads = [r2, r]
+                elif inst.count('{}')/2 == 2:
+                    rads = [r2, r, r2, r]
+                elif inst.count('{}')/2 == 2:
+                    rads = [r2, r, r2, r, r2, r]
                 if add == 0:
-                    _dynamic_instrument_patsy = inst.format(r2, r)
+                    _dynamic_instrument_patsy = inst.format(*rads)
                     add = 1 
                 else:
-                    _dynamic_instrument_patsy = _dynamic_instrument_patsy + ' + ' + inst.format(r2, r)
+                    _dynamic_instrument_patsy = _dynamic_instrument_patsy + ' + ' + inst.format(*rads)
             add = 0 
             for x in dynamic_exog:
                 if add == 0:
@@ -382,7 +410,7 @@ def calculate_optimal_radii(data, endog, dynamic_exog, dynamic_instruments, stat
             if dynamic_controls is not None:
                 for c in dynamic_controls:
                     if add == 0:
-                        _dynamic_controls_patsy = c.format(r, r2)
+                        _dynamic_controls_patsy = c.format(r2, r)
                         add = 1 
                     else:
                         _dynamic_controls_patsy = _dynamic_controls_patsy + ' + ' + c.format(r2, r)
@@ -392,7 +420,13 @@ def calculate_optimal_radii(data, endog, dynamic_exog, dynamic_instruments, stat
                 opt_r = min(bic_values, key=bic_values.get)
                 return opt_r, exog_dict[opt_r], instruments_dict[opt_r], controls_dict[opt_r]   
             for inst in dynamic_instruments:
-                _dynamic_instrument_patsy = _dynamic_instrument_patsy + ' + ' + inst.format(r2, r)
+                if inst.count('{}')/2 == 1: 
+                    rads = [r2, r]
+                elif inst.count('{}')/2 == 2:
+                    rads = [r2, r, r2, r]
+                elif inst.count('{}')/2 == 2:
+                    rads = [r2, r, r2, r, r2, r]
+                _dynamic_instrument_patsy = _dynamic_instrument_patsy + ' + ' + inst.format(*rads)
             for x in dynamic_exog:
                 _dynamic_exog_patsy = _dynamic_exog_patsy + ' + ' + x.format(r2, r)
                 
@@ -420,7 +454,7 @@ def calculate_optimal_radii(data, endog, dynamic_exog, dynamic_instruments, stat
         
         _model = geGMM(data, [endog], _exog, _instrument, 
                      latitude=latitude, longitude=longitude, pweights=pweights, 
-                     controls=_controls, distance_cutoff=distance_cutoff, bartlett=bartlett)
+                     controls=_controls, distance_cutoff=distance_cutoff, kernel=kernel)
         
         _beta0 = np.ones(_model.n_exog)
         _fitted = _model.fit(_beta0, maxiter = maxiter, optim_method=optim_method)
@@ -440,7 +474,7 @@ def calculate_optimal_radii(data, endog, dynamic_exog, dynamic_instruments, stat
         bic_values[r] = _bic
         controls_dict[r] = _controls 
         exog_dict[r] = _exog
-        instruments_dict[r] = _exog
+        instruments_dict[r] = _instrument
 
         if r == 2: 
             if _model.exog.shape[0] < 1000:
@@ -459,4 +493,63 @@ def calculate_optimal_radii(data, endog, dynamic_exog, dynamic_instruments, stat
                 return opt_r, exog_dict[opt_r], instruments_dict[opt_r], controls_dict[opt_r]    
             
     opt_r = min(bic_values, key=bic_values.get)
-    return opt_r, exog_dict[opt_r], instruments_dict[opt_r], controls_dict[opt_r]           
+    return opt_r, exog_dict[opt_r], instruments_dict[opt_r], controls_dict[opt_r]       
+
+
+ent_type_weights_el2 = {1: .13313188, 2: .08802072, 3: .95598004}
+def average_total_effect(ge_gmm_results, specification='enterprise', ent_type_weights=ent_type_weights_el2, el2_ent_data=None):
+    params = ge_gmm_results.model.data.xnames 
+    ATE_string_total = '0'
+    ATE_string_spillover = '0'
+    if specification == 'enterprise':
+        if el2_ent_data is None:
+            raise Exception('el2_ent_data must be specified if calculating enterprise results')
+        for p in params:
+            if 'C(ent_type)[1.0]:' in p:
+                exog = p[len('C(ent_type)[1.0]:'):] 
+                _var = el2_ent_data.loc[(~el2_ent_data[exog].isna()) & (el2_ent_data['treat'] == 1) & (el2_ent_data['ent_type'] == 1), exog]
+                _weights = el2_ent_data.loc[(~el2_ent_data[exog].isna()) & (el2_ent_data['treat'] == 1) & (el2_ent_data['ent_type'] == 1), 'ent_weight_el2'] 
+                _amt = np.average(_var, weights=_weights) 
+                
+                ATE_string_total = ATE_string_total + ' + {}*{}*{}'.format(ent_type_weights[1], _amt, p)
+                
+                _var = el2_ent_data.loc[(~el2_ent_data[exog].isna()) & (el2_ent_data['treat'] == 0) & (el2_ent_data['ent_type'] == 1), exog]
+                _weights = el2_ent_data.loc[(~el2_ent_data[exog].isna()) & (el2_ent_data['treat'] == 0) & (el2_ent_data['ent_type'] == 1), 'ent_weight_el2'] 
+                _amt = np.average(_var, weights=_weights) 
+                
+                ATE_string_spillover = ATE_string_spillover + ' + {}*{}*{}'.format(ent_type_weights[1], _amt, p)
+                
+            if 'C(ent_type)[2.0]:' in p:
+                exog = p[len('C(ent_type)[2.0]:'):] 
+                _var = el2_ent_data.loc[(~el2_ent_data[exog].isna()) & (el2_ent_data['treat'] == 1) & (el2_ent_data['ent_type'] == 2), exog]
+                _weights = el2_ent_data.loc[(~el2_ent_data[exog].isna()) & (el2_ent_data['treat'] == 1) & (el2_ent_data['ent_type'] == 2), 'ent_weight_el2'] 
+                _amt = np.average(_var, weights=_weights) 
+                
+                ATE_string_total = ATE_string_total + ' + {}*{}*{}'.format(ent_type_weights[2], _amt, p)
+                
+                _var = el2_ent_data.loc[(~el2_ent_data[exog].isna()) & (el2_ent_data['treat'] == 0) & (el2_ent_data['ent_type'] == 2), exog]
+                _weights = el2_ent_data.loc[(~el2_ent_data[exog].isna()) & (el2_ent_data['treat'] == 0) & (el2_ent_data['ent_type'] == 2), 'ent_weight_el2'] 
+                _amt = np.average(_var, weights=_weights) 
+                
+                ATE_string_spillover = ATE_string_spillover + ' + {}*{}*{}'.format(ent_type_weights[2], _amt, p)
+    
+            if 'C(ent_type)[3.0]:' in p:
+                exog = p[len('C(ent_type)[3.0]:'):] 
+                _var = el2_ent_data.loc[(~el2_ent_data[exog].isna()) & (el2_ent_data['treat'] == 1) & (el2_ent_data['ent_type'] == 3), exog]
+                _weights = el2_ent_data.loc[(~el2_ent_data[exog].isna()) & (el2_ent_data['treat'] == 1) & (el2_ent_data['ent_type'] == 3), 'ent_weight_el2'] 
+                _amt = np.average(_var, weights=_weights) 
+                
+                ATE_string_total = ATE_string_total + ' + {}*{}*{}'.format(ent_type_weights[3], _amt, p)
+                
+                _var = el2_ent_data.loc[(~el2_ent_data[exog].isna()) & (el2_ent_data['treat'] == 0) & (el2_ent_data['ent_type'] == 3), exog]
+                _weights = el2_ent_data.loc[(~el2_ent_data[exog].isna()) & (el2_ent_data['treat'] == 0) & (el2_ent_data['ent_type'] == 3), 'ent_weight_el2'] 
+                _amt = np.average(_var, weights=_weights) 
+                
+                ATE_string_spillover = ATE_string_spillover + ' + {}*{}*{}'.format(ent_type_weights[3], _amt, p)
+                
+    t_test_total = ge_gmm_results.t_test(ATE_string_total) 
+    t_test_spillover = ge_gmm_results.t_test(ATE_string_spillover)
+    results = {'b_total': t_test_total.effect[0], 'se_total': t_test_total.sd[0][0], 'p_total': t_test_total.pvalue,
+               'b_spillover': t_test_spillover.effect[0], 'se_spillover': t_test_spillover.sd[0][0], 'p_spillover': t_test_spillover.pvalue}
+    return results    
+
