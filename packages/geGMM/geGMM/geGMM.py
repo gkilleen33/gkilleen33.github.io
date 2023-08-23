@@ -118,6 +118,7 @@ class geGMM(spatialGMM):
     latitude: Variables name containing latitude 
     longitude: Variable name containing longitude 
     pweights: (Optional) variable name containing inverse probability weights 
+    other_vars: (Optional) list of other variables to append to data, without partialling out controls (e.g. sample indicators) 
     controls: (Optional) Patsy formula with controls to partial out 
     distance_cutoff: Default 10km: spatial distance cutoff for Conley error estimation in km
     kernel (str default 'uniform'): If 'uniform' uses a uniform kernel. If 'bartlett' uses a Bartlett kernel. If 'pos_def' uses (1 - dist/dist_cutoff)^2 to ensure positive definite covariance. 
@@ -141,6 +142,8 @@ class geGMM(spatialGMM):
         List of exogenous variable names
     parameters: list 
         List of parameter names, if included
+    other_vars: ndarray
+        Other variables passed to class
 
     Methods
     -------
@@ -149,7 +152,7 @@ class geGMM(spatialGMM):
     """
     
     def __init__(self, data, dep_vars, exog, instruments, moments=None, 
-                 latitude='latitude', longitude='longitude', pweights=None, 
+                 latitude='latitude', longitude='longitude', pweights=None, other_vars=None,
                  controls=None, distance_cutoff=10, kernel='uniform', parameters=None, *args, **kwds):
 
         # If dep_vars specified as a string, convert to a list 
@@ -174,9 +177,15 @@ class geGMM(spatialGMM):
         if pweights is not None:
             vars_to_use = vars_to_use + [pweights]
         vars_to_use = vars_to_use + ['latitude', 'longitude']
+        if other_vars is not None:
+            vars_to_use = vars_to_use + other_vars
         vars_to_use = list(set(vars_to_use))  # Remove duplicates 
         
         _df = data.dropna(subset = vars_to_use)
+        if other_vars is not None:
+            self.other_vars = _df[other_vars].values
+        else:
+            self.other_vars = None
         
         instruments = dmatrix(instruments + ' - 1', _df, return_type='dataframe')
         exog = dmatrix(exog + ' - 1', _df, return_type='dataframe')
@@ -292,6 +301,14 @@ class geGMM(spatialGMM):
                 weight = self.weights
         else:
             weight = 1 
+
+        if self.other_vars is not None:
+            other_vars = list() 
+            if len(self.other_vars.shape) > 1:
+                for i in range(self.other_vars.shape[1]):
+                    other_vars.append(self.other_vars[:,i])
+            else:
+                other_vars.append(self.other_vars)
             
         g = np.empty([self.exog.shape[0], len(self.moments)])
         j = 0
