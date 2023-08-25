@@ -67,8 +67,9 @@ moments: (Optional) List of moment conditions. Each moment condition should be a
     assumes each exogenous variable, instrument should be used linearly for every endogenous variable.
 latitude: Variables name containing latitude 
 longitude: Variable name containing longitude 
-pweights: (Optional) variable name containing inverse probability weights 
+pweights: (Optional) variable name containing inverse probability weights  
 controls: (Optional) Patsy formula with controls to partial out 
+other_vars: (Optional) list of other variables to append to data, without partialling out controls (e.g. sample indicators)
 distance_cutoff: Default 10km: spatial distance cutoff for Conley error estimation in km
 kernel (str default 'uniform'): If 'uniform' uses a uniform kernel. If 'bartlett' uses a Bartlett kernel. 
 parameters: A list of parameter names, as strings. Optional if simple IV case. Required if using other moments.
@@ -91,6 +92,8 @@ exog_names: list
     List of exogenous variable names
 parameters: list 
     List of parameter names, if included
+other_vars: ndarray
+    Other variables passed to class
 
 Methods
 -------
