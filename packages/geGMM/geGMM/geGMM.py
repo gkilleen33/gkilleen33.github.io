@@ -72,9 +72,9 @@ class spatialGMM(GMM):
             if kernel == 'uniform':
                 Ki = [1 if d <= cutoff else 0 for d in distancei]
             elif kernel == 'bartlett':
-                Ki = [d/cutoff if d <= cutoff else 0 for d in distancei]
+                Ki = [1 - d/cutoff if d <= cutoff else 0 for d in distancei]
             elif kernel == 'pos_def':
-                Ki = [(d/cutoff)**2 if d <= cutoff else 0 for d in distancei]
+                Ki = [(1 - d/cutoff)**2 if d <= cutoff else 0 for d in distancei]
             K[i,:] = Ki 
         return K 
     
