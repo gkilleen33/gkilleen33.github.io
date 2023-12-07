@@ -343,7 +343,7 @@ class geGMM(spatialGMM):
 def calculate_optimal_radii(data, endog, dynamic_exog, dynamic_instruments, static_instruments=None, 
                             static_exog=None, static_controls=None, dynamic_controls=None, monotonic=True,
                             latitude='latitude', longitude='longitude', kernel='uniform', distance_cutoff=10, pweights=None, maxiter=1,
-                            optim_method='bfgs', optim_args=None, addBLcontrols='enterprise'):
+                            optim_method='bfgs', optim_args=None, addBLcontrols='enterprise', tsls=False):
     """
     Figures out the optimal radius for a scalar outcome and a set of instruments by minimizing BIC. Only supports a single outcome.
 
@@ -367,6 +367,7 @@ def calculate_optimal_radii(data, endog, dynamic_exog, dynamic_instruments, stat
         optim_args: (optional, dict) : dictionary of arguments for the optimization algorithm (e.g. increase max iterations)
         addBLcontrols: (str, default 'enterprise') : searches for and adds BL controls if available. Default is to add enterprise BL controls.
             Currently only enterprise supported.
+        tsls: (boolean, default False) If True, uses two-stage least squares weighting, and sets max iterations to 1 
 
     Returns:
         opt_r, selected_exogenous, selected_instruments, selected_controls 
@@ -474,7 +475,13 @@ def calculate_optimal_radii(data, endog, dynamic_exog, dynamic_instruments, stat
                      controls=_controls, distance_cutoff=distance_cutoff, kernel=kernel)
         
         _beta0 = np.ones(_model.n_exog)
-        _fitted = _model.fit(_beta0, maxiter = maxiter, optim_method=optim_method)
+
+        if tsls:
+            _inv_w = (1/_model.instrument.shape[0])*np.dot(_model.instrument.T, _model.instrument) 
+            _fitted = _model.fit(_beta0, inv_weights=_inv_w, maxiter=1, optim_method=optim_method)
+
+        else:
+            _fitted = _model.fit(_beta0, maxiter = maxiter, optim_method=optim_method)
         
         _pred = np.dot(_model.exog, _fitted.params) 
         _resid = _model.endog - _pred 
