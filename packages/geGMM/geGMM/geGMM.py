@@ -189,9 +189,15 @@ class geGMM(spatialGMM):
         
         instruments = dmatrix(instruments + ' - 1', _df, return_type='dataframe')
         exog = dmatrix(exog + ' - 1', _df, return_type='dataframe')
+        for x in instruments.columns:
+            if x in exog.columns:
+                instruments.drop(columns=[x], inplace=True)  # This avoids including controls twice in the final dataframe 
     
         if controls is not None:
             control_df = dmatrix(controls, _df, return_type='dataframe')
+            for control in control_df.columns: 
+                if (control in exog.columns) or (control in instruments.columns) or (control.replace('[T.', '[') in exog.columns) or (control.replace('[T.', '[') in instruments.columns):  # the T. is for differences in naming levels with intercept
+                    control_df.drop(columns=[control], inplace=True)  # Handles cases where accidentally list an included variable to partial out (e.g. when formula includes too many levels)
             df_full = pd.concat([_df[dep_vars], _df[[latitude, longitude]], instruments, exog, control_df], axis=1)
 
         else:
@@ -270,7 +276,7 @@ class geGMM(spatialGMM):
         super(geGMM, self).__init__(endog = endog, exog = exog, instrument=instrument,
                                     latitude=df_full[latitude], longitude=df_full[longitude], 
                                     kernel=kernel, distance_cutoff=distance_cutoff, *args, **kwds)
-        
+
         if parameters is not None:
             self.set_param_names(parameters)
         else:
@@ -320,7 +326,7 @@ class geGMM(spatialGMM):
         return g
     
     
-    def _partialOutControls(self, data, var_list, controls, weight_name=None):
+    def _partialOutControls(self, data, var_list, controls, weight_name=None, keep_collinear=True):
         df_po = pd.DataFrame(columns=var_list)
         _df = data.copy()
         _df.dropna(subset=var_list, inplace=True)
