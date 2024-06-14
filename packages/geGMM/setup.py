@@ -8,6 +8,6 @@ setup(
   author_email = 'gkilleen@berkeley.edu',
   python_requires='>=3.5',
   packages = ['geGMM'],
-  install_requires=['numpy', 'pandas', 'statsmodels', 'patsy']
+  install_requires=['numpy', 'pandas', 'statsmodels', 'patsy', 'scikit-learn']
 )
 

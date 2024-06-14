@@ -11,7 +11,10 @@ from statsmodels.regression.linear_model import WLS
 import numpy as np 
 from patsy import dmatrix, ModelDesc, DesignInfo
 from math import cos, pi, log, pi
-            
+from sklearn.linear_model import LassoCV 
+from sklearn.feature_selection import SelectFromModel
+from sklearn.model_selection import KFold 
+
 
 class spatialGMM(GMM):
     """
@@ -123,6 +126,8 @@ class geGMM(spatialGMM):
     distance_cutoff: Default 10km: spatial distance cutoff for Conley error estimation in km
     kernel (str default 'uniform'): If 'uniform' uses a uniform kernel. If 'bartlett' uses a Bartlett kernel. If 'pos_def' uses (1 - dist/dist_cutoff)^2 to ensure positive definite covariance. 
     parameters: A list of parameter names, as strings. Optional if simple IV case. Required if using other moments.
+    lasso_controls: A Patsy formula specifying any controls to select from using double partial out LASSO
+    lasso_seed: Random seed for 5-fold CV when specifying LASSO controls. Default 1.
 
     Attributes
     ----------
@@ -153,15 +158,23 @@ class geGMM(spatialGMM):
     
     def __init__(self, data, dep_vars, exog, instruments, moments=None, 
                  latitude='latitude', longitude='longitude', pweights=None, other_vars=None,
-                 controls=None, distance_cutoff=10, kernel='uniform', parameters=None, *args, **kwds):
+                 controls=None, distance_cutoff=10, kernel='uniform', parameters=None, lasso_controls=None, lasso_seed=1, *args, **kwds):
 
         # If dep_vars specified as a string, convert to a list 
         if isinstance(dep_vars, str):
             dep_vars = dep_vars.split(',')
         
         # Get an initial list of variables to drop 
-        if controls is not None:
-            md = ModelDesc.from_formula('{} ~ {} + {} + {}'.format(dep_vars[0], exog, instruments, controls))
+        if (controls is not None) and (lasso_controls is not None):
+            full_controls = controls + ' + ' + lasso_controls
+        elif controls is not None:
+            full_controls = controls
+        elif lasso_controls is not None:
+            full_controls = lasso_controls
+        else: 
+            full_controls = None
+        if full_controls is not None:
+            md = ModelDesc.from_formula('{} ~ {} + {} + {}'.format(dep_vars[0], exog, instruments, full_controls))
         else:
             md = ModelDesc.from_formula('{} ~ {} + {}'.format(dep_vars[0], exog, instruments))
         termlist = md.rhs_termlist 
@@ -190,9 +203,15 @@ class geGMM(spatialGMM):
         instruments = dmatrix(instruments + ' - 1', _df, return_type='dataframe')
         exog = dmatrix(exog + ' - 1', _df, return_type='dataframe')
     
-        if controls is not None:
-            control_df = dmatrix(controls, _df, return_type='dataframe')
-            df_full = pd.concat([_df[dep_vars], _df[[latitude, longitude]], instruments, exog, control_df], axis=1)
+        if full_controls is not None:
+            full_control_df = dmatrix(full_controls, _df, return_type='dataframe')
+            df_full = pd.concat([_df[dep_vars], _df[[latitude, longitude]], instruments, exog, full_control_df], axis=1)
+            if controls is not None:
+                always_included_controls = dmatrix(controls, _df, return_type='dataframe').columns  # Captures always included controls, plus partials out first before running LASSO
+                if lasso_controls is not None:
+                    potential_controls = dmatrix(potential_controls + ' - 1', _df, return_type='dataframe').columns
+            else:
+                potential_controls = dmatrix(potential_controls, _df, return_type='dataframe').columns
 
         else:
             self.controls = None
@@ -202,22 +221,52 @@ class geGMM(spatialGMM):
             df_full = pd.concat([df_full, _df[pweights]], axis = 1)
             df_full.dropna(inplace=True)
             
-            if controls:
-                self.n_controls = len(control_df.columns)
-                var_list = dep_vars + list(exog.columns) + list(instruments.columns)
-                df_po = self._partialOutControls(data=df_full, var_list=var_list, controls=df_full[control_df.columns].values, weight_name=pweights)
+            if full_controls is not None:
+                if controls is not None:
+                    var_list = dep_vars + list(exog.columns) + list(instruments.columns)
+                    lasso_var_list = dep_vars + list(exog.columns)  # Do not want to search for controls over instruments 
+                    if lasso_controls is None:
+                        self.n_controls = len(control_df.columns)
+                        df_po = self._partialOutControls(data=df_full, var_list=var_list, controls=df_full[always_included_controls].values, weight_name=pweights)
+
+                    else:
+                        df_po_temp = self._partialOutControls(data=df_full, var_list=var_list + list(potential_controls), controls=df_full[always_included_controls].values, weight_name=pweights)
+                        lasso_selected = self._lasso_select(included_vars=lasso_var_list, potential_controls=list(potential_controls), df=df_po_temp, weight_name=pweights)
+                        del df_po_temp
+                        combined_controls = list(always_included_controls) + lasso_selected
+                        self.n_controls = len(combined_controls)
+                        df_po = self._partialOutControls(data=df_full, var_list=var_list, controls=df_full[combined_controls].values, weight_name=pweights)
+                else:
+                    lasso_selected = self._lasso_select(included_vars=lasso_var_list, potential_controls=list(potential_controls), df=df_full, weight_name=pweights)
+                    self.n_controls = len(lasso_selected)
+                    df_po = self._partialOutControls(data=df_full, var_list=var_list, controls=df_full[lasso_selected].values, weight_name=pweights)
             else:
                 df_po = df_full 
                 self.n_controls = 0 
         else:
             df_full.dropna(inplace=True)
-            if controls:
-                self.n_controls = len(control_df.columns)
-                var_list = dep_vars + list(exog.columns) + list(instruments.columns)
-                df_po = self._partialOutControls(data=df_full, var_list=var_list, controls=df_full[control_df.columns].values)
+            if full_controls is not None:
+                if controls is not None:
+                    var_list = dep_vars + list(exog.columns) + list(instruments.columns)
+                    lasso_var_list = dep_vars + list(exog.columns)  # Do not want to search for controls over instruments 
+                    if lasso_controls is None:
+                        self.n_controls = len(control_df.columns)
+                        df_po = self._partialOutControls(data=df_full, var_list=var_list, controls=df_full[always_included_controls].values)
+
+                    else:
+                        df_po_temp = self._partialOutControls(data=df_full, var_list=var_list + list(potential_controls), controls=df_full[always_included_controls].values)
+                        lasso_selected = self._lasso_select(included_vars=lasso_var_list, potential_controls=list(potential_controls), df=df_po_temp)
+                        del df_po_temp
+                        combined_controls = list(always_included_controls) + lasso_selected
+                        self.n_controls = len(combined_controls)
+                        df_po = self._partialOutControls(data=df_full, var_list=var_list, controls=df_full[combined_controls].values)
+                else:
+                    lasso_selected = self._lasso_select(included_vars=lasso_var_list, potential_controls=list(potential_controls), df=df_full)
+                    self.n_controls = len(lasso_selected)
+                    df_po = self._partialOutControls(data=df_full, var_list=var_list, controls=df_full[lasso_selected].values)
             else:
-                self.n_controls = 0 
                 df_po = df_full 
+                self.n_controls = 0 
             
         self.instrument_names = list(instruments.columns)    
         instrument = df_po[instruments.columns].values
@@ -338,6 +387,39 @@ class geGMM(spatialGMM):
             df_po[var] = ind_reg.resid
             
         return df_po
+
+    def _lassoSelect(self, included_vars, potential_controls, df, weight_name=None):        
+        selected_controls = list() 
+
+        if weight_name is not None:
+            W = np.diag(np.sqrt(df[weight_name].values))  # Get weights manually for inverse probability weighting, since not supported natively by scikit learn
+
+        for x in included_vars:
+            if weight_name is not None:
+                _y = np.dot(W, df[[x]])
+            else:
+                _y = df[[x]]
+            _y = _y.values.ravel()
+            if weight_name is not None:
+                _X = np.dot(W, df[potential_controls])
+            else:
+                _X = df[potential_controls]
+            lasso_cv = LassoCV(cv=KFold(n_splits=5, shuffle=True, random_state=self.lasso_seed)) 
+            lasso_cv.fit(_X, _y)
+            selected = SelectFromModel(lasso_cv, prefit=True) 
+            feature_idx = selected.get_support()
+            feature_names = _X.columns[feature_idx].tolist()
+            selected_controls.append(feature_names)
+            
+        # Add in base levels for any interactions included
+        for x in selected_controls:
+            if ':' in x:
+                base_levels = x.split(':')
+                for level in base_levels:
+                    selected_controls.append(level)
+
+        self.selected_controls = list(set(selected_controls))
+        return list(set(selected_controls))  # Removes any duplicates 
         
 
 def calculate_optimal_radii(data, endog, dynamic_exog, dynamic_instruments, static_instruments=None, 
