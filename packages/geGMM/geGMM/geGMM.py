@@ -202,8 +202,14 @@ class geGMM(spatialGMM):
         else:
             self.other_vars = None
         
-        instruments = dmatrix(instruments + ' - 1', _df, return_type='dataframe')
-        exog = dmatrix(exog + ' - 1', _df, return_type='dataframe')
+        if full_controls is not None:
+            instruments = dmatrix(instruments + ' - 1', _df, return_type='dataframe')
+            exog = dmatrix(exog + ' - 1', _df, return_type='dataframe')
+        else:
+            instruments = dmatrix(instruments, _df, return_type='dataframe')
+            exog = dmatrix(exog, _df, return_type='dataframe')
+
+        self.instrument_names = list(instruments.columns)    
         for x in instruments.columns:
             if x in exog.columns:
                 instruments.drop(columns=[x], inplace=True)  # This avoids including controls twice in the final dataframe 
@@ -232,7 +238,9 @@ class geGMM(spatialGMM):
                 for control in potential_controls: 
                     if (control in exog.columns) or (control in instruments.columns) or (control.replace('[T.', '[') in exog.columns) or (control.replace('[T.', '[') in instruments.columns):  # the T. is for differences in naming levels with intercept
                         potential_controls.remove(control)  # Handles cases where accidentally list an included variable to partial out (e.g. when formula includes too many levels)
-            
+        else:
+            df_full = pd.concat([_df[dep_vars], _df[[latitude, longitude]], instruments, exog], axis=1)
+
         if pweights is not None:
             df_full = pd.concat([df_full, _df[pweights]], axis = 1)
             df_full.dropna(inplace=True)
@@ -284,8 +292,7 @@ class geGMM(spatialGMM):
                 df_po = df_full 
                 self.n_controls = 0 
             
-        self.instrument_names = list(instruments.columns)    
-        instrument = df_po[instruments.columns].values
+        instrument = df_po[self.instrument_names].values
         endog = df_po[dep_vars].values
         self.exogenous_names = list(exog.columns)
         exog = df_po[exog.columns].values 
