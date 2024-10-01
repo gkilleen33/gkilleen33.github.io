@@ -128,6 +128,7 @@ class geGMM(spatialGMM):
     parameters: A list of parameter names, as strings. Optional if simple IV case. Required if using other moments.
     lasso_controls: A Patsy formula specifying any controls to select from using double partial out LASSO
     lasso_seed: Random seed for 5-fold CV when specifying LASSO controls. Default 1.
+    lasso_exclude: Base levels excluded from LASSO inclusion. Default None
 
     Attributes
     ----------
@@ -158,13 +159,14 @@ class geGMM(spatialGMM):
     
     def __init__(self, data, dep_vars, exog, instruments, moments=None, 
                  latitude='latitude', longitude='longitude', pweights=None, other_vars=None,
-                 controls=None, distance_cutoff=10, kernel='uniform', parameters=None, lasso_controls=None, lasso_seed=1, *args, **kwds):
+                 controls=None, distance_cutoff=10, kernel='uniform', parameters=None, lasso_controls=None, lasso_seed=1, lasso_exclude=None, *args, **kwds):
 
         # If dep_vars specified as a string, convert to a list 
         if isinstance(dep_vars, str):
             dep_vars = dep_vars.split(',')
 
         self.lasso_seed = lasso_seed
+        self.lasso_exclude = lasso_exclude
         
         # Get an initial list of variables to drop 
         if (controls is not None) and (lasso_controls is not None):
@@ -228,9 +230,10 @@ class geGMM(spatialGMM):
                     if (control in exog.columns) or (control in instruments.columns) or (control.replace('[T.', '[') in exog.columns) or (control.replace('[T.', '[') in instruments.columns):  # the T. is for differences in naming levels with intercept
                         always_included_controls.remove(control)  # Handles cases where accidentally list an included variable to partial out (e.g. when formula includes too many levels)
                 if lasso_controls is not None:
-                    potential_controls = dmatrix(lasso_controls + ' - 1', _df, return_type='dataframe').columns
+                    potential_controls = list(dmatrix(lasso_controls, _df, return_type='dataframe').columns)
+                    potential_controls = [x for x in potential_controls if x != 'Intercept']  # Ensures that still named relative to the intercept, excess levels aren't included 
                     for control in potential_controls: 
-                        if (control in exog.columns) or (control in instruments.columns) or (control.replace('[T.', '[') in exog.columns) or (control.replace('[T.', '[') in instruments.columns):  # the T. is for differences in naming levels with intercept
+                        if (control in exog.columns) or (control in instruments.columns) or (control in always_included_controls) or (control.replace('[T.', '[') in exog.columns) or (control.replace('[T.', '[') in instruments.columns) or (control.replace('[T.', '[') in always_included_controls) or (control.replace('[', '[T.') in exog.columns) or (control.replace('[', '[T.') in instruments.columns) or (control.replace('[', '[T.') in always_included_controls):  # the T. is for differences in naming levels with intercept
                             potential_controls.remove(control)  # Handles cases where accidentally list an included variable to partial out (e.g. when formula includes too many levels)
 
             else:
@@ -440,7 +443,12 @@ class geGMM(spatialGMM):
             if ':' in x:
                 base_levels = x.split(':')
                 for level in base_levels:
-                    selected_controls.append(level)
+                    if (level in included_vars) or (level in self.instrument_names):
+                        pass  # E.g. if lasso includes control * treat, but treat is a variable of interest already included 
+                    elif (self.lasso_exclude is not None) and (level in self.lasso_exclude):
+                        pass
+                    else:
+                        selected_controls.append(level)
 
         self.selected_controls = list(set(selected_controls))
         return list(set(selected_controls))  # Removes any duplicates 
