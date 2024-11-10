@@ -237,10 +237,10 @@ class geGMM(spatialGMM):
                             potential_controls.remove(control)  # Handles cases where accidentally list an included variable to partial out (e.g. when formula includes too many levels)
 
             else:
-                potential_controls = dmatrix(lasso_controls, _df, return_type='dataframe').columns
+                potential_controls = list(dmatrix(lasso_controls, _df, return_type='dataframe').columns)
                 for control in potential_controls: 
                     if (control in exog.columns) or (control in instruments.columns) or (control.replace('[T.', '[') in exog.columns) or (control.replace('[T.', '[') in instruments.columns):  # the T. is for differences in naming levels with intercept
-                        potential_controls.remove(control)  # Handles cases where accidentally list an included variable to partial out (e.g. when formula includes too many levels)
+                        potential_controls = [x for x in potential_controls if x != control]  # Handles cases where accidentally list an included variable to partial out (e.g. when formula includes too many levels)
         else:
             df_full = pd.concat([_df[dep_vars], _df[[latitude, longitude]], instruments, exog], axis=1)
 
@@ -257,6 +257,9 @@ class geGMM(spatialGMM):
                         df_po = self._partialOutControls(data=df_full, var_list=var_list, controls=df_full[always_included_controls].values, weight_name=pweights)
 
                     else:
+                        for x in combined_controls:
+                            print(x)
+
                         df_po_temp = self._partialOutControls(data=df_full, var_list=var_list + list(potential_controls), controls=df_full[always_included_controls].values, weight_name=pweights)
                         lasso_selected = self._lassoSelect(included_vars=lasso_var_list, potential_controls=list(potential_controls), df=df_po_temp, weight_name=pweights)
                         del df_po_temp
