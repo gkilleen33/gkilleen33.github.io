@@ -1,8 +1,70 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Research</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            background-color: #ffffff;
+            color: #000000;
+            margin: 0;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+        }
+        h2 {
+            font-size: 1.5rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 0.25rem;
+        }
+        .paper {
+            margin-bottom: 2rem;
+        }
+        .paper-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 0.2rem;
+        }
+        .paper-authors {
+            font-size: 0.95rem;
+            font-weight: normal;
+            color: #444;
+            margin-bottom: 0.5rem;
+        }
+        .abstract {
+            display: none;
+            margin-top: 0.5rem;
+        }
+        .button-row {
+            margin-top: 0.5rem;
+        }
+        .toggle-button, .pdf-button {
+            background: none;
+            border: none;
+            color: #0066cc;
+            cursor: pointer;
+            padding: 0;
+            font-size: 1rem;
+            text-decoration: underline;
+            margin-right: 1rem;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 1rem;
+            }
+        }
+    </style>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
     <title>Research</title>
     <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css?h=2f5017592099803165df0ae6050729c8">
@@ -10,62 +72,96 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/baguettebox.js/1.10.0/baguetteBox.min.css">
     <link rel="stylesheet" href="assets/css/styles.min.css?h=ebd6f95904009a297a139802d395213f">
 </head>
-
 <body>
-    <nav class="navbar navbar-light navbar-expand-lg fixed-top bg-white clean-navbar">
-        <div class="container"><a class="navbar-brand logo" href="#">Grady Killeen</a><button data-toggle="collapse" class="navbar-toggler" data-target="#navcol-1"><span class="sr-only">Toggle navigation</span><span class="navbar-toggler-icon"></span></button>
-            <div class="collapse navbar-collapse" id="navcol-1">
-                <ul class="navbar-nav ml-auto">
-                    <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
-                    <li class="nav-item"><a class="nav-link active" href="research.html">Research</a></li>
-                    <li class="nav-item"><a class="nav-link" href="economics-search-engine.html">Economics Search Engine</a></li>
-                    <li class="nav-item"><a class="nav-link" href="contact.html">Contact&nbsp;</a></li>
-                </ul>
-            </div>
+<nav class="navbar navbar-light navbar-expand-lg fixed-top bg-white clean-navbar">
+    <div class="container"><a class="navbar-brand logo" href="#">Grady Killeen</a><button data-toggle="collapse" class="navbar-toggler" data-target="#navcol-1"><span class="sr-only">Toggle navigation</span><span class="navbar-toggler-icon"></span></button>
+        <div class="collapse navbar-collapse" id="navcol-1">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+                <li class="nav-item"><a class="nav-link active" href="research.html">Research</a></li>
+                <li class="nav-item"><a class="nav-link" href="economics-search-engine.html">Economics Search Engine</a></li>
+                <li class="nav-item"><a class="nav-link" href="contact.html">Contact&nbsp;</a></li>
+            </ul>
         </div>
-    </nav>
-    <main class="page blog-post-list">
-        <section class="clean-block clean-blog-list dark">
-            <div class="container">
-                <div class="block-heading">
-                    <h2 class="text-info">Research</h2>
-                </div>
-            </div>
-            <div class="container">
-                <div class="row">
-                    <div class="col">
-                        <h4 class="text-center" style="text-align: center;">Working Papers</h4>
-                        <ul class="list-group">
-                            <li class="list-group-item"><a href="https://github.com/gkilleen33/gkilleen33.github.io/blob/master/papers/working/Killeen-JMP.pdf" target="_blank">"Risk Aversion and Demand Uncertainty Among Small Firms: Evidence From New Product Adoption" (Job Market Paper)&nbsp;</a></li>
-                            <li class="list-group-item"><a href="https://github.com/gkilleen33/gkilleen33.github.io/blob/master/papers/working/Killeen-VSL.pdf" target="_blank">"A New Experimental Method for Estimating the Value of a Statistical Life: With an application to road safety in Kenya"&nbsp;</a></li>
-                            <li class="list-group-item">"Unconditional Cash Transfers and Child Mortality: Experimental Evidence from Kenya" (with Michael Walker, Nick Shankar, Edward Miguel and Dennis Egger) &nbsp;</li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col">
-                        <h4 style="text-align: center;">Publications</h4>
-                        <ul class="list-group">
-                            <li class="list-group-item"><a href="https://kwnsfk27.r.eu-west-1.awstrack.me/L0/https:%2F%2Fauthors.elsevier.com%2Fc%2F1kxGB15DRGBjxK/1/01020196390e2a7f-363aac52-0fd6-4057-9b46-f77550483e1a-000000/ZCDUS1i_5eafIiM4jDjhPvDAWVw=421">"Using Satellites and Phones to Evaluate and Promote Agricultural Technology Adoption: Evidence from Smallholder Farms in India"</a><span>&nbsp;(with Shawn Cole, Tomoko Harigaya, and Aparna Krishna) <em>Journal of Development Economics</em>&nbsp;</span></li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col">
-                        <h4 style="text-align: center;">Works in Progress</h4>
-                        <ul class="list-group">
-                            <li class="list-group-item">"Freeriding, Business Stealing, and New Product Adoption"<span>&nbsp; (with Luisa Cefala and Nicholas Swanson) &nbsp;</span></li>
-                            <li class="list-group-item">"Multiple Missing Markets and Allocative Efficiency"<span>&nbsp; (with Supreet Kaur) &nbsp;</span></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/baguettebox.js/1.10.0/baguetteBox.min.js"></script>
-    <script src="assets/js/script.min.js?h=037c4117326bceadaedc2681de8afadc"></script>
-</body>
+    </div>
+</nav>
+<div class="container">
 
+    <h1> &nbsp; </h1>
+    <h1> &nbsp; </h1>
+
+    <h2>Working Papers</h2>
+    <div class="paper">
+        <div class="paper-title">Risk Aversion and Demand Uncertainty Among Small Firms: Evidence From New Product Adoption</div>
+        <div class="paper-authors"><b>Job Market Paper</b></div>
+        <div class="button-row">
+            <button class="toggle-button" onclick="toggleAbstract(this)">Abstract</button>
+            <a class="pdf-button" href="https://github.com/gkilleen33/gkilleen33.github.io/blob/master/papers/working/Killeen-JMP.pdf" target="_blank">Paper</a>
+        </div>
+        <div class="abstract">
+            <p>I report the results of two randomized controlled trials in Kenya demonstrating that retail firms under-adopt new products because they are risk averse and face uncertain demand. The experiments study the market for motorcycle helmets, which many shops believe are profitable, yet few adopt. One experiment (N=350) offers shops a contract that induces a mean-preserving contraction of profits. This increases stocking from 20% to 30%, indicating that risk aversion constrains adoption. The second experiment (N=929) allows treated firms to return unsold stock, a common high-income policy. Shops offered returns are more than twice as likely (10 p.p.) to try selling helmets, yet only 5 shops make returns. Effects are persistent. Treated firms are 7 p.p. (70%) more likely to stock after the returns window ends and most stay in the market. Belief data indicates that returns crowd in shops with diffuse priors about demand whose uncertainty is resolved by experience, consistent with learning by risk averse agents. A second experimental arm supports this interpretation by reducing future supply chain uncertainty, making learning more valuable. This doubles adoption if shops cannot return stock but has no effect if they can. This matches theoretical predictions since returns eliminate losses, inducing any firm uncertain about the profitability of helmets to stock. These results suggest that products may diffuse inefficiently in low and middle-income economies because small retailers pay a high utility cost to experiment with new goods. The findings also call into question the common practice of modeling small enterprises as risk neutral.</p>
+        </div>
+    </div>
+
+    <div class="paper">
+        <div class="paper-title">A New Experimental Method for Estimating Demand for Non-market Goods: With an Application to the Value of a Statistical Life</div>
+        <div class="button-row">
+            <button class="toggle-button" onclick="toggleAbstract(this)">Abstract</button>
+            <a class="pdf-button" href="https://github.com/gkilleen33/gkilleen33.github.io/blob/master/papers/working/Killeen%20Non-market%20Demand%20QJE%20Submission.pdf" target="_blank">Paper</a>
+        </div>
+        <div class="abstract">
+            <p>Economists often study consumer preferences for non-market goods such as clean air and health. This paper introduces a new revealed preference method to estimate demand for these amenities and applies it to study preferences for mortality risk reduction, the value of a statistical life (VSL), in Kenya. My approach is to update beliefs about the efficacy of a product that reduces mortality risk (a new helmet), and elicit product choice. This generates instruments allowing one to use subjective belief data to estimate demand, avoiding the need to assume rational expectations. This procedure does not require beliefs to be reported without error, it only makes the assumption that measurement error is classical. My design validates this assumption using multiple instruments and insights from local average treatment effects. This method yields estimates of VSL of $224, near the left tail of East African estimates. I find that existing methods for estimating VSL produce skewed estimates of the parameter, driven by severe violations of rational expectations. These findings help rationalize low demand for health products in low and middle-income countries. The VSL estimates also change the conclusion of 4 out of 5 recent benefit-cost analyses and imply that billions of dollars of development aid may be misallocated, highlighting the importance of accurate estimates of demand for non-market amenities.</p>
+        </div>
+    </div>
+
+    <div class="paper">
+        <div class="paper-title">Unconditional Cash Transfers and Child Mortality: Experimental Evidence from Kenya</div>
+        <div class="paper-authors">with Michael Walker, Nick Shankar, Edward Miguel and Dennis Egger</div>
+        <div class="button-row">
+            <button class="toggle-button" onclick="toggleAbstract(this)">Abstract</button>
+        </div>
+        <div class="abstract">
+            <p>We estimate the intergenerational health impacts of large-scale unconditional cash transfers. One-time transfers of USD 1000 were provided to over 10,500 poor households across 653 randomized villages in Kenya. We collected regional census data on over 100,000 births, including on mortality and cause of death, and detailed data on household health behaviors. In the study's main finding, the cash transfer treatment leads to 55% fewer infant deaths before age one and 49% fewer child deaths before age five. Data on the location of health facilities, as well as the cause of death and transfer timing relative to birth, indicate that unconditional cash transfers and access to delivery services are complements in generating mortality reductions: the largest gains are estimated among households living close to health facilities who receive the transfer around the time of the birth, and treatment leads to a large overall increase in hospital deliveries. Infant and child mortality then largely revert to pre-program levels after cash transfers end. Despite not being the main aim of the original program, we show that unconditional cash transfers in this setting may be a cost-effective way to reduce infant and child deaths.</p>
+        </div>
+    </div>
+
+    <h2>Publications</h2>
+    <div class="paper">
+        <div class="paper-title">Using satellites and phones to evaluate and promote agricultural technology adoption: Evidence from smallholder farms in India</div>
+        <div class="paper-authors">with Shawn Cole, Aparna Krishna and Tomoko Harigaya. Forthcoming <i>Journal of Development Economics.</i></div>
+        <div class="button-row">
+            <button class="toggle-button" onclick="toggleAbstract(this)">Abstract</button>
+            <a class="pdf-button" href="https://doi.org/10.1016/j.jdeveco.2025.103463">Paper</a>
+        </div>
+        <div class="abstract">
+            <p>This paper evaluates a low-cost, customized soil nutrient management advisory service in India. As a methodological contribution, we examine whether and in which settings satellite measurements may be effective at estimating both agricultural yields and treatment effects. The intervention improves self-reported fertilizer management practices, though not enough to measurably affect yields. Satellite measurements calibrated using OLS produce more precise point estimates than farmer-reported data, suggesting power gains. However, linear models, common in the literature, likely produce biased estimates. We propose an alternative procedure, using two-stage least squares. In settings without attrition, this approach obtains lower statistical power than self-reported yields; in settings with differential attrition, it may substantially increase power. We include a “cookbook” and code that should allow other researchers to use remote sensing for yield estimation and program evaluation.</p>
+        </div>
+    </div>
+
+    <h2>Work in Progress</h2>
+    <div class="paper">
+        <div class="paper-title">Free-Riding and New Product Adoption: Evidence from Burundi</div>
+        <div class="paper-authors">with Luisa Cefala, Rédempteur Ntawiratsa and Nicholas Swanson</div>
+    </div>
+    <div class="paper">
+        <div class="paper-title">Multiple Missing Markets and Allocative Efficiency</div>
+        <div class="paper-authors">with Supreet Kaur</div>
+    </div>
+</div>
+
+<h1>&nbsp;</h1>
+
+<script>
+    function toggleAbstract(button) {
+        const abstract = button.closest('.paper').querySelector('.abstract');
+        const isVisible = abstract.style.display === 'block';
+        abstract.style.display = isVisible ? 'none' : 'block';
+        button.textContent = isVisible ? 'Abstract' : 'Abstract';
+    }
+</script>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/baguettebox.js/1.10.0/baguetteBox.min.js"></script>
+<script src="assets/js/script.min.js?h=037c4117326bceadaedc2681de8afadc"></script>
 </html>
