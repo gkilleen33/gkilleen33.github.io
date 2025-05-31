@@ -257,9 +257,6 @@ class geGMM(spatialGMM):
                         df_po = self._partialOutControls(data=df_full, var_list=var_list, controls=df_full[always_included_controls].values, weight_name=pweights)
 
                     else:
-                        for x in combined_controls:
-                            print(x)
-
                         df_po_temp = self._partialOutControls(data=df_full, var_list=var_list + list(potential_controls), controls=df_full[always_included_controls].values, weight_name=pweights)
                         lasso_selected = self._lassoSelect(included_vars=lasso_var_list, potential_controls=list(potential_controls), df=df_po_temp, weight_name=pweights)
                         del df_po_temp
