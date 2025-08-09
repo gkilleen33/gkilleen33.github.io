@@ -93,7 +93,7 @@ class spatialGMM(GMM):
     def calc_weightmatrix(self, moms, df_correction=None, weights_method='conley', wargs=None, params=None):
         # weights_method, params and wargs to avoid changing other statsmodels code, not used but don't delete
         nobs, k_moms = moms.shape
-        
+
         V = np.zeros([k_moms, k_moms])
 
         for i in range(nobs):
@@ -593,7 +593,13 @@ def calculate_optimal_radii(data, endog, dynamic_exog, dynamic_instruments, stat
         _beta0 = np.ones(_model.n_exog)
 
         if tsls:
-            _inv_w = (1/_model.instrument.shape[0])*np.dot(_model.instrument.T, _model.instrument) 
+            if _model.weights is not None:
+                w = np.asarray(_model.weights).reshape(-1)     
+            else:
+                w = 1   
+            Z = _model.instrument
+            ZtWZ = Z.T @ (w[:, None] * Z)                               
+            _inv_w = (1/_model.instrument.shape[0])*ZtWZ
             _fitted = _model.fit(_beta0, inv_weights=_inv_w, maxiter=1, optim_method=optim_method)
 
         else:
