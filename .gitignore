@@ -1,2 +1,4 @@
 packages/geGMM/dist 
 packages/geGMM/geGMM.egg-info
+
+.DS_Store
