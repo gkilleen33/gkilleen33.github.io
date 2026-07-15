@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>East Africa Furniture Agent Playground</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --surface-0:#f1efe8;--surface-1:#f7f6f2;--surface-2:#ffffff;
+  --text-primary:#1a1a18;--text-secondary:#5f5e5a;--text-muted:#888780;
+  --border:rgba(0,0,0,0.12);--border-strong:rgba(0,0,0,0.2);
+  --bg-accent:#e6f1fb;--border-accent:#85b7eb;--text-accent:#185fa5;
+  --fill-accent:#378add;--on-accent:#ffffff;
+  --bg-warning:#faeeda;--border-warning:#ef9f27;--text-warning:#854f0b;
+  --bg-danger:#fcebeb;--border-danger:#f09595;--text-danger:#a32d2d;
+  --radius:8px;
+  --font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --surface-0:#1c1c1a;--surface-1:#242422;--surface-2:#2e2e2b;
+    --text-primary:#f0ede6;--text-secondary:#a8a69f;--text-muted:#6e6c66;
+    --border:rgba(255,255,255,0.1);--border-strong:rgba(255,255,255,0.18);
+    --bg-accent:#0c3558;--border-accent:#185fa5;--text-accent:#85b7eb;
+    --fill-accent:#185fa5;--on-accent:#ffffff;
+    --bg-warning:#412402;--border-warning:#854f0b;--text-warning:#fac775;
+    --bg-danger:#501313;--border-danger:#a32d2d;--text-danger:#f7c1c1;
+  }
+}
+body{font-family:var(--font-sans);background:var(--surface-0);color:var(--text-primary);min-height:100vh;padding:24px;}
+h1{font-size:18px;font-weight:500;margin-bottom:4px;}
+.subtitle{font-size:13px;color:var(--text-muted);margin-bottom:16px;}
+.api-bar{background:var(--bg-warning);border:0.5px solid var(--border-warning);border-radius:var(--radius);padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.api-bar label{font-size:13px;color:var(--text-warning);font-weight:500;white-space:nowrap;}
+.api-bar input{flex:1;min-width:200px;border:0.5px solid var(--border-warning);border-radius:var(--radius);padding:6px 10px;font-size:13px;background:var(--surface-2);color:var(--text-primary);font-family:monospace;}
+.api-bar input:focus{outline:none;}
+.api-note{font-size:11px;color:var(--text-warning);width:100%;margin-top:2px;}
+.layout{display:grid;grid-template-columns:320px 1fr;height:660px;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;background:var(--surface-1);}
+.sidebar{border-right:0.5px solid var(--border);display:flex;flex-direction:column;overflow:hidden;background:var(--surface-2);}
+.sidebar-tabs{display:flex;border-bottom:0.5px solid var(--border);}
+.stab{flex:1;padding:10px 0;font-size:12px;text-align:center;cursor:pointer;color:var(--text-secondary);border:none;background:none;}
+.stab:hover{background:var(--surface-1);}
+.stab.active{color:var(--text-primary);font-weight:500;border-bottom:2px solid var(--border-accent);background:var(--surface-2);}
+.sidebar-content{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px;}
+.tool-select{display:flex;gap:6px;}
+.tool-btn{flex:1;padding:7px 4px;font-size:11px;border:0.5px solid var(--border-strong);border-radius:var(--radius);cursor:pointer;background:var(--surface-1);color:var(--text-secondary);text-align:center;}
+.tool-btn.active{background:var(--bg-accent);border-color:var(--border-accent);color:var(--text-accent);font-weight:500;}
+label{font-size:12px;color:var(--text-secondary);display:block;margin-bottom:4px;}
+select,textarea,input[type=password]{width:100%;border:0.5px solid var(--border);border-radius:var(--radius);padding:8px;font-size:13px;font-family:var(--font-sans);background:var(--surface-2);color:var(--text-primary);}
+select{height:34px;cursor:pointer;}
+textarea{resize:none;line-height:1.5;}
+select:focus,textarea:focus{outline:none;border-color:var(--border-accent);}
+.file-zone{border:0.5px dashed var(--border-strong);border-radius:var(--radius);padding:8px 10px;text-align:center;cursor:pointer;}
+.file-zone:hover{background:var(--surface-1);}
+.file-zone-label{font-size:12px;color:var(--text-muted);}
+.file-list{display:flex;flex-direction:column;gap:4px;margin-top:6px;}
+.file-chip{display:flex;align-items:center;justify-content:space-between;background:var(--surface-1);border:0.5px solid var(--border);border-radius:6px;padding:4px 8px;font-size:12px;}
+.file-chip-name{color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px;}
+.file-remove{background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:14px;line-height:1;padding:0 2px;}
+.file-remove:hover{color:var(--text-danger);}
+.apply-btn{width:100%;padding:8px;background:var(--bg-accent);color:var(--text-accent);border:0.5px solid var(--border-accent);border-radius:var(--radius);font-size:13px;font-weight:500;cursor:pointer;}
+.apply-btn:hover{opacity:0.85;}
+.notice{font-size:12px;color:var(--text-muted);background:var(--bg-warning);border:0.5px solid var(--border-warning);border-radius:var(--radius);padding:6px 10px;}
+.chat-area{display:flex;flex-direction:column;height:100%;}
+.chat-header{padding:8px 14px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.chat-tool-badge{font-size:12px;background:var(--bg-accent);color:var(--text-accent);padding:3px 10px;border-radius:20px;font-weight:500;white-space:nowrap;}
+.model-pill{font-size:11px;color:var(--text-muted);background:var(--surface-1);border:0.5px solid var(--border);border-radius:20px;padding:3px 9px;white-space:nowrap;}
+.reset-btn{padding:5px 10px;font-size:12px;border:0.5px solid var(--border-strong);border-radius:var(--radius);background:none;color:var(--text-secondary);cursor:pointer;white-space:nowrap;}
+.reset-btn:hover{background:var(--bg-danger);color:var(--text-danger);border-color:var(--border-danger);}
+.messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;}
+.msg{max-width:88%;}
+.msg.user{align-self:flex-end;}
+.msg.assistant{align-self:flex-start;}
+.msg-bubble{padding:10px 14px;border-radius:12px;font-size:14px;line-height:1.6;white-space:pre-wrap;}
+.msg.user .msg-bubble{background:var(--bg-accent);color:var(--text-primary);border-bottom-right-radius:4px;}
+.msg.assistant .msg-bubble{background:var(--surface-2);border:0.5px solid var(--border);border-bottom-left-radius:4px;}
+.msg-role{font-size:11px;color:var(--text-muted);margin-bottom:3px;}
+.msg.user .msg-role{text-align:right;}
+.msg-images{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;justify-content:flex-end;}
+.msg-img{width:80px;height:80px;object-fit:cover;border-radius:8px;border:0.5px solid var(--border);cursor:pointer;}
+.typing{display:flex;gap:4px;padding:10px 14px;background:var(--surface-2);border:0.5px solid var(--border);border-radius:12px;border-bottom-left-radius:4px;align-self:flex-start;}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--text-muted);animation:bounce 1.2s infinite;}
+.dot:nth-child(2){animation-delay:0.2s;}
+.dot:nth-child(3){animation-delay:0.4s;}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text-muted);font-size:13px;gap:6px;}
+.input-area{border-top:0.5px solid var(--border);}
+.pending-images{display:flex;flex-wrap:wrap;gap:6px;padding:8px 14px 0;}
+.pending-thumb-wrap{position:relative;display:inline-block;}
+.pending-thumb{width:52px;height:52px;object-fit:cover;border-radius:6px;border:0.5px solid var(--border);display:block;}
+.pending-remove{position:absolute;top:-5px;right:-5px;width:16px;height:16px;border-radius:50%;background:var(--text-secondary);color:white;border:none;cursor:pointer;font-size:10px;line-height:16px;text-align:center;padding:0;}
+.input-row{padding:8px 14px 12px;display:flex;gap:8px;align-items:flex-end;}
+.attach-btn{width:34px;height:34px;border:0.5px solid var(--border-strong);border-radius:var(--radius);background:var(--surface-2);color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.attach-btn:hover{background:var(--surface-1);color:var(--text-primary);}
+.input-row textarea{flex:1;min-height:34px;max-height:100px;padding:7px 10px;font-size:14px;resize:none;border-radius:var(--radius);}
+.send-btn{padding:7px 14px;background:var(--fill-accent);color:var(--on-accent);border:none;border-radius:var(--radius);font-size:13px;font-weight:500;cursor:pointer;height:34px;}
+.send-btn:disabled{opacity:0.45;cursor:not-allowed;}
+.lightbox{position:fixed;inset:0;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;z-index:100;cursor:pointer;}
+.lightbox img{max-width:90vw;max-height:90vh;border-radius:8px;}
+@media(max-width:700px){
+  body{padding:12px;}
+  .layout{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:auto;}
+  .sidebar{border-right:none;border-bottom:0.5px solid var(--border);max-height:300px;}
+  .chat-area{height:500px;}
+}
+</style>
+</head>
+<body>
+<h1>East Africa Furniture Agent Playground</h1>
+<p class="subtitle">Test system prompts for the quality verification and training assistant tools.</p>
+<div class="api-bar">
+  <label for="api-key">Anthropic API key</label>
+  <input type="password" id="api-key" placeholder="sk-ant-..." autocomplete="off">
+  <div class="api-note">Used only in this browser tab, sent only to api.anthropic.com. Get a key at console.anthropic.com.</div>
+</div>
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-tabs">
+      <button class="stab active" onclick="showTab('config')">Config</button>
+      <button class="stab" onclick="showTab('prompt')">System prompt</button>
+      <button class="stab" onclick="showTab('files')">Context files</button>
+    </div>
+    <div class="sidebar-content" id="tab-config">
+      <div>
+        <label>Active tool</label>
+        <div class="tool-select">
+          <div class="tool-btn active" id="btn-quality" onclick="setTool('quality')">🔍 Quality verifier</div>
+          <div class="tool-btn" id="btn-training" onclick="setTool('training')">📚 Training assistant</div>
+        </div>
+      </div>
+      <div>
+        <label>Model</label>
+        <select id="model-select" onchange="updateModelPill()">
+          <option value="claude-sonnet-4-6" selected>Claude Sonnet 4.6 — balanced</option>
+          <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 — fast &amp; cheap</option>
+          <option value="claude-opus-4-6">Claude Opus 4.6 — most capable</option>
+        </select>
+      </div>
+      <div class="notice">Switching tool or applying resets the conversation.</div>
+      <div>
+        <label>Persona / user notes</label>
+        <textarea id="persona-notes" rows="3" placeholder="e.g. Rural buyer, low literacy, WhatsApp in Swahili..."></textarea>
+      </div>
+      <div>
+        <label>Target region</label>
+        <textarea id="region" rows="2" placeholder="e.g. Kampala, Uganda"></textarea>
+      </div>
+      <button class="apply-btn" onclick="applyConfig()">Apply &amp; reset conversation ↺</button>
+    </div>
+    <div class="sidebar-content" id="tab-prompt" style="display:none">
+      <div>
+        <label>System prompt — <strong id="prompt-tool-label">Quality verifier</strong></label>
+        <textarea id="system-prompt" rows="24" placeholder="Enter system prompt..."></textarea>
+      </div>
+      <button class="apply-btn" onclick="applyConfig()">Apply &amp; reset conversation ↺</button>
+    </div>
+    <div class="sidebar-content" id="tab-files" style="display:none">
+      <div>
+        <label>Background context images / PDFs</label>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">Sent with every message (reference defects, papers, etc.)</div>
+        <div class="file-zone" onclick="document.getElementById('ctx-file-input').click()">
+          <div class="file-zone-label">Click to upload</div>
+        </div>
+        <input type="file" id="ctx-file-input" multiple accept="image/*,.pdf" style="display:none" onchange="handleContextFiles(event)">
+        <div class="file-list" id="file-list"></div>
+      </div>
+      <div class="notice">For per-message images, use the 📎 button in the chat input.</div>
+    </div>
+  </div>
+  <div class="chat-area">
+    <div class="chat-header">
+      <span class="chat-tool-badge" id="chat-badge">Quality verifier</span>
+      <span class="model-pill" id="model-pill">Sonnet 4.6</span>
+      <button class="reset-btn" onclick="resetChat()">Reset ↺</button>
+    </div>
+    <div class="messages" id="messages">
+      <div class="empty-state">
+        <div style="font-size:28px;opacity:0.4">💬</div>
+        <div>Enter your API key, then start testing</div>
+        <div style="font-size:12px;margin-top:4px">Use 📎 to attach images to individual messages</div>
+      </div>
+    </div>
+    <div class="input-area">
+      <div class="pending-images" id="pending-images"></div>
+      <div class="input-row">
+        <button class="attach-btn" onclick="document.getElementById('msg-img-input').click()" title="Attach image to this message">📎</button>
+        <input type="file" id="msg-img-input" multiple accept="image/*" style="display:none" onchange="handleMsgImages(event)">
+        <textarea id="user-input" rows="1" placeholder="Type a test message..." onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button class="send-btn" id="send-btn" onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const defaultPrompts={quality:`You are a furniture quality verification assistant helping customers in East Africa — primarily Uganda and Kenya — identify whether furniture is high or low quality.
+
+Your role:
+- Help users assess furniture quality from descriptions or images
+- Explain specific defects clearly and their practical consequences (durability, safety, comfort)
+- Use simple, direct language appropriate for buyers with varying literacy levels
+- When images are provided, describe what you observe and what it means for quality
+
+Local context:
+- Common furniture types: wooden chairs, tables, sofas, beds, wardrobes
+- Common materials: local hardwoods, softwoods, plywood, MDF, fabric, foam
+- Key concerns: durability in humid/dry seasonal conditions, joinery quality, finishing
+
+Tone: Warm, practical, non-technical. Avoid jargon. If a defect is serious, say so clearly.`,training:`You are a training assistant helping artisanal furniture makers in East Africa — primarily Uganda and Kenya — improve the quality of their products and grow their businesses.
+
+Your role:
+- Teach better production methods in clear, step-by-step terms
+- Help makers understand which tool upgrades are worth the investment
+- Discuss quality standards that buyers expect and how to meet them
+- Support business decisions: pricing, materials sourcing, customer feedback
+
+Local context:
+- Makers typically work in small workshops, often with hand tools or basic power tools
+- Common challenges: inconsistent joinery, poor finishing, wood selection, moisture management
+- Economic constraints are real — prioritize high-impact, low-cost improvements
+
+Tone: Encouraging, practical, peer-like. Treat makers as skilled professionals learning new techniques.`};
+const modelLabels={'claude-sonnet-4-6':'Sonnet 4.6','claude-haiku-4-5-20251001':'Haiku 4.5','claude-opus-4-6':'Opus 4.6'};
+let currentTool='quality',conversations={quality:[],training:[]},systemPrompts={quality:defaultPrompts.quality,training:defaultPrompts.training},contextFiles=[],pendingImages=[],isLoading=false;
+function updateModelPill(){document.getElementById('model-pill').textContent=modelLabels[document.getElementById('model-select').value]||document.getElementById('model-select').value;}
+function showTab(tab){['config','prompt','files'].forEach(t=>document.getElementById('tab-'+t).style.display=t===tab?'flex':'none');document.querySelectorAll('.stab').forEach((el,i)=>el.classList.toggle('active',['config','prompt','files'][i]===tab));if(tab==='prompt'){document.getElementById('system-prompt').value=systemPrompts[currentTool];document.getElementById('prompt-tool-label').textContent=currentTool==='quality'?'Quality verifier':'Training assistant';}}
+function setTool(tool){if(tool===currentTool)return;const p=document.getElementById('system-prompt');if(p.value.trim())systemPrompts[currentTool]=p.value;currentTool=tool;document.getElementById('btn-quality').classList.toggle('active',tool==='quality');document.getElementById('btn-training').classList.toggle('active',tool==='training');document.getElementById('chat-badge').textContent=tool==='quality'?'Quality verifier':'Training assistant';document.getElementById('prompt-tool-label').textContent=tool==='quality'?'Quality verifier':'Training assistant';document.getElementById('system-prompt').value=systemPrompts[tool];renderMessages();}
+function applyConfig(){const v=document.getElementById('system-prompt').value.trim();if(v)systemPrompts[currentTool]=v;conversations[currentTool]=[];renderMessages();showTab('config');}
+function resetChat(){conversations[currentTool]=[];pendingImages=[];renderPendingImages();renderMessages();}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function renderMessages(){const msgs=conversations[currentTool],c=document.getElementById('messages');if(!msgs.length){c.innerHTML='<div class="empty-state"><div style="font-size:28px;opacity:0.4">💬</div><div>Configure a system prompt, then start testing</div><div style="font-size:12px;margin-top:4px">Use 📎 to attach images to individual messages</div></div>';return;}c.innerHTML=msgs.map(m=>`<div class="msg ${m.role}"><div class="msg-role">${m.role==='user'?'You':'Agent'}</div>${m.images&&m.images.length?`<div class="msg-images">${m.images.map(s=>`<img class="msg-img" src="${s}" onclick="openLightbox('${s}')">`).join('')}</div>`:''} ${m.content?`<div class="msg-bubble">${esc(m.content)}</div>`:''}</div>`).join('');c.scrollTop=c.scrollHeight;}
+function handleMsgImages(e){Array.from(e.target.files).forEach(f=>{if(!f.type.startsWith('image/'))return;const r=new FileReader();r.onload=ev=>{pendingImages.push({name:f.name,dataUrl:ev.target.result,base64:ev.target.result.split(',')[1],mediaType:f.type});renderPendingImages();};r.readAsDataURL(f);});e.target.value='';}
+function renderPendingImages(){document.getElementById('pending-images').innerHTML=pendingImages.map((img,i)=>`<div class="pending-thumb-wrap"><img class="pending-thumb" src="${img.dataUrl}"><button class="pending-remove" onclick="removePending(${i})">×</button></div>`).join('');}
+function removePending(i){pendingImages.splice(i,1);renderPendingImages();}
+function handleContextFiles(e){Array.from(e.target.files).forEach(f=>{const r=new FileReader();r.onload=ev=>{contextFiles.push({name:f.name,type:f.type,data:ev.target.result.split(',')[1],mediaType:f.type});renderFileList();};r.readAsDataURL(f);});e.target.value='';}
+function renderFileList(){document.getElementById('file-list').innerHTML=contextFiles.map((f,i)=>`<div class="file-chip"><span class="file-chip-name">${esc(f.name)}</span><button class="file-remove" onclick="removeCtxFile(${i})">×</button></div>`).join('');}
+function removeCtxFile(i){contextFiles.splice(i,1);renderFileList();}
+function buildSystemPrompt(){let base=systemPrompts[currentTool];const notes=document.getElementById('persona-notes').value.trim(),region=document.getElementById('region').value.trim();if(region)base+=`\n\nRegion context: ${region}`;if(notes)base+=`\n\nUser persona notes: ${notes}`;return base;}
+async function sendMessage(){if(isLoading)return;const apiKey=document.getElementById('api-key').value.trim();if(!apiKey){alert('Please enter your Anthropic API key.');return;}const input=document.getElementById('user-input'),text=input.value.trim();if(!text&&!pendingImages.length)return;const msgImages=[...pendingImages];pendingImages=[];renderPendingImages();input.value='';autoResize(input);isLoading=true;document.getElementById('send-btn').disabled=true;conversations[currentTool].push({role:'user',content:text,images:msgImages.map(i=>i.dataUrl)});renderMessages();const c=document.getElementById('messages'),t=document.createElement('div');t.className='typing';t.innerHTML='<div class="dot"></div><div class="dot"></div><div class="dot"></div>';c.appendChild(t);c.scrollTop=c.scrollHeight;
+try{const model=document.getElementById('model-select').value,apiMessages=conversations[currentTool].map((m,idx)=>{if(m.role!=='user')return{role:'assistant',content:m.content};const content=[];if(idx===0&&contextFiles.length)contextFiles.forEach(f=>{if(f.type.startsWith('image/'))content.push({type:'image',source:{type:'base64',media_type:f.mediaType,data:f.data}});else if(f.type==='application/pdf')content.push({type:'document',source:{type:'base64',media_type:'application/pdf',data:f.data}});});if(idx===conversations[currentTool].length-1&&msgImages.length)msgImages.forEach(img=>content.push({type:'image',source:{type:'base64',media_type:img.mediaType,data:img.base64}}));if(m.content)content.push({type:'text',text:m.content});return{role:'user',content:content.length===1&&content[0].type==='text'?m.content:content};});
+const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model,max_tokens:1000,system:buildSystemPrompt(),messages:apiMessages})});const data=await resp.json();t.remove();if(data.error)throw new Error(data.error.message);const reply=(data.content||[]).map(b=>b.text||'').join('');conversations[currentTool].push({role:'assistant',content:reply||'(No response)'});}catch(e){t.remove();conversations[currentTool].push({role:'assistant',content:`Error: ${e.message}`});}
+isLoading=false;document.getElementById('send-btn').disabled=false;renderMessages();}
+function openLightbox(src){const lb=document.createElement('div');lb.className='lightbox';lb.innerHTML=`<img src="${src}">`;lb.onclick=()=>lb.remove();document.body.appendChild(lb);}
+function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}}
+function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,100)+'px';}
+document.getElementById('system-prompt').value=systemPrompts.quality;
+</script>
+</body>
+</html>
