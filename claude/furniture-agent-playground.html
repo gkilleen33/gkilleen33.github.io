@@ -28,7 +28,7 @@
     --bg-danger:#501313;--border-danger:#a32d2d;--text-danger:#f7c1c1;
   }
 }
-body{font-family:var(--font-sans);background:var(--surface-0);color:var(--text-primary);min-height:100vh;padding:24px;}
+body{font-family:var(--font-sans);background:var(--surface-0);color:var(--text-primary);height:100vh;overflow:hidden;padding:24px;box-sizing:border-box;}
 h1{font-size:18px;font-weight:500;margin-bottom:4px;}
 .subtitle{font-size:13px;color:var(--text-muted);margin-bottom:16px;}
 .api-bar{background:var(--bg-warning);border:0.5px solid var(--border-warning);border-radius:var(--radius);padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
@@ -72,7 +72,8 @@ select:focus,textarea:focus{outline:none;border-color:var(--border-accent);}
 .msg{max-width:88%;}
 .msg.user{align-self:flex-end;}
 .msg.assistant{align-self:flex-start;}
-.msg-bubble{padding:10px 14px;border-radius:12px;font-size:14px;line-height:1.6;white-space:pre-wrap;}
+.msg-bubble{padding:10px 14px;border-radius:12px;font-size:14px;line-height:1.6;}
+.msg.user .msg-bubble{white-space:pre-wrap;}
 .msg.user .msg-bubble{background:var(--bg-accent);color:var(--text-primary);border-bottom-right-radius:4px;}
 .msg.assistant .msg-bubble{background:var(--surface-2);border:0.5px solid var(--border);border-bottom-left-radius:4px;}
 .msg-role{font-size:11px;color:var(--text-muted);margin-bottom:3px;}
@@ -202,7 +203,35 @@ function setTool(tool){if(tool===currentTool)return;const p=document.getElementB
 function applyConfig(){const v=document.getElementById('system-prompt').value.trim();if(v)systemPrompts[currentTool]=v;conversations[currentTool]=[];renderMessages();showTab('config');}
 function resetChat(){conversations[currentTool]=[];pendingImages=[];renderPendingImages();renderMessages();}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function renderMessages(){const msgs=conversations[currentTool],c=document.getElementById('messages');if(!msgs.length){c.innerHTML='<div class="empty-state"><div style="font-size:28px;opacity:0.4">💬</div><div>Configure a system prompt, then start testing</div><div style="font-size:12px;margin-top:4px">Use 📎 to attach images to individual messages</div></div>';return;}c.innerHTML=msgs.map(m=>`<div class="msg ${m.role}"><div class="msg-role">${m.role==='user'?'You':'Agent'}</div>${m.images&&m.images.length?`<div class="msg-images">${m.images.map(s=>`<img class="msg-img" src="${s}" onclick="openLightbox('${s}')">`).join('')}</div>`:''} ${m.content?`<div class="msg-bubble">${esc(m.content)}</div>`:''}</div>`).join('');c.scrollTop=c.scrollHeight;}
+function md(s){
+  // Simple markdown renderer for assistant messages
+  let h=esc(s);
+  // headings
+  h=h.replace(/^### (.+)$/gm,'<h3 style="font-size:13px;font-weight:600;margin:10px 0 4px">$1</h3>');
+  h=h.replace(/^## (.+)$/gm,'<h2 style="font-size:14px;font-weight:600;margin:12px 0 4px">$1</h2>');
+  h=h.replace(/^# (.+)$/gm,'<h1 style="font-size:15px;font-weight:600;margin:12px 0 4px">$1</h1>');
+  // bold/italic
+  h=h.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+  h=h.replace(/\*(.+?)\*/g,'<em>$1</em>');
+  // horizontal rules
+  h=h.replace(/^---+$/gm,'<hr style="border:none;border-top:0.5px solid var(--border);margin:8px 0">');
+  // bullet lists: collect consecutive lines starting with - or *
+  h=h.replace(/(^[-*] .+$(\n|$))+/gm,match=>{
+    const items=match.trim().split('\n').map(l=>l.replace(/^[-*] /,''));
+    return '<ul style="margin:4px 0 4px 16px;padding:0">'+items.map(i=>`<li>${i}</li>`).join('')+'</ul>\n';
+  });
+  // numbered lists
+  h=h.replace(/(^\d+\. .+$(\n|$))+/gm,match=>{
+    const items=match.trim().split('\n').map(l=>l.replace(/^\d+\. /,''));
+    return '<ol style="margin:4px 0 4px 16px;padding:0">'+items.map(i=>`<li>${i}</li>`).join('')+'</ol>\n';
+  });
+  // paragraphs: double newline -> paragraph break
+  h=h.replace(/\n\n+/g,'</p><p style="margin:8px 0">');
+  // single newlines (not inside block elements already) -> <br>
+  h=h.replace(/([^>])\n([^<])/g,'$1<br>$2');
+  return `<p style="margin:0">${h}</p>`;
+}
+function renderMessages(){const msgs=conversations[currentTool],c=document.getElementById('messages');if(!msgs.length){c.innerHTML='<div class="empty-state"><div style="font-size:28px;opacity:0.4">💬</div><div>Configure a system prompt, then start testing</div><div style="font-size:12px;margin-top:4px">Use 📎 to attach images to individual messages</div></div>';return;}c.innerHTML=msgs.map(m=>`<div class="msg ${m.role}"><div class="msg-role">${m.role==='user'?'You':'Agent'}</div>${m.images&&m.images.length?`<div class="msg-images">${m.images.map(s=>`<img class="msg-img" src="${s}" onclick="openLightbox('${s}')">`).join('')}</div>`:''} ${m.content?`<div class="msg-bubble">${m.role==='assistant'?md(m.content):esc(m.content)}</div>`:''}</div>`).join('');c.scrollTop=c.scrollHeight;}
 function handleMsgImages(e){Array.from(e.target.files).forEach(f=>{if(!f.type.startsWith('image/'))return;const r=new FileReader();r.onload=ev=>{pendingImages.push({name:f.name,dataUrl:ev.target.result,base64:ev.target.result.split(',')[1],mediaType:f.type});renderPendingImages();};r.readAsDataURL(f);});e.target.value='';}
 function renderPendingImages(){document.getElementById('pending-images').innerHTML=pendingImages.map((img,i)=>`<div class="pending-thumb-wrap"><img class="pending-thumb" src="${img.dataUrl}"><button class="pending-remove" onclick="removePending(${i})">×</button></div>`).join('');}
 function removePending(i){pendingImages.splice(i,1);renderPendingImages();}
