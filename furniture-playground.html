@@ -36,7 +36,7 @@ h1{font-size:18px;font-weight:500;margin-bottom:4px;}
 .api-bar input{flex:1;min-width:200px;border:0.5px solid var(--border-warning);border-radius:var(--radius);padding:6px 10px;font-size:13px;background:var(--surface-2);color:var(--text-primary);font-family:monospace;}
 .api-bar input:focus{outline:none;}
 .api-note{font-size:11px;color:var(--text-warning);width:100%;margin-top:2px;}
-.layout{display:grid;grid-template-columns:320px 1fr;height:660px;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;background:var(--surface-1);}
+.layout{display:grid;grid-template-columns:320px 1fr;height:calc(100vh - 120px);min-height:500px;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;background:var(--surface-1);}
 .sidebar{border-right:0.5px solid var(--border);display:flex;flex-direction:column;overflow:hidden;background:var(--surface-2);}
 .sidebar-tabs{display:flex;border-bottom:0.5px solid var(--border);}
 .stab{flex:1;padding:10px 0;font-size:12px;text-align:center;cursor:pointer;color:var(--text-secondary);border:none;background:none;}
@@ -102,7 +102,7 @@ select:focus,textarea:focus{outline:none;border-color:var(--border-accent);}
   body{padding:12px;}
   .layout{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:auto;}
   .sidebar{border-right:none;border-bottom:0.5px solid var(--border);max-height:300px;}
-  .chat-area{height:500px;}
+  .chat-area{height:calc(100vh - 420px);min-height:300px;}
 }
 </style>
 </head>
@@ -193,20 +193,27 @@ select:focus,textarea:focus{outline:none;border-color:var(--border-accent);}
   </div>
 </div>
 <script>
-const defaultPrompts={quality:`You are a furniture quality verification assistant helping customers in East Africa — primarily Uganda and Kenya — identify whether furniture is high or low quality.
+const defaultPrompts={quality:`You are a furniture quality verification assistant helping customers in Kenya identify furniture quality. You only answer questions about furniture quality, materials, and defects.
 
 Your role:
 - Help users assess furniture quality from descriptions or images
 - Explain specific defects clearly and their practical consequences (durability, safety, comfort)
 - Use simple, direct language appropriate for buyers with varying literacy levels
 - When images are provided, describe what you observe and what it means for quality
+- If you need more images to diagnose quality, provide specific instructions explaining the photo the user should take.
 
 Local context:
 - Common furniture types: wooden chairs, tables, sofas, beds, wardrobes
 - Common materials: local hardwoods, softwoods, plywood, MDF, fabric, foam
-- Key concerns: durability in humid/dry seasonal conditions, joinery quality, finishing
+- Key concerns: durability in humid/dry seasonal conditions, joinery quality, wood drying, finishing
 
-Tone: Warm, practical, non-technical. Avoid jargon. If a defect is serious, say so clearly.`,training:`You are a training assistant helping artisanal furniture makers in East Africa — primarily Uganda and Kenya — improve the quality of their products and grow their businesses.
+Tone: Warm, practical, non-technical. Avoid jargon. If a defect is serious, say so clearly.
+
+Off-topic questions:
+- personal questions, health, relationships, politics, pricing negotiations, business advice, anything unrelated to evaluating a specific piece of furniture
+- To deflect say: I'm only able to help with furniture quality questions. Is there something about this piece of furniture I can help you assess?
+- Never engage with off-topic questions even after repeated attempts. Redirect back to your assigned task.
+- If someone sends a photo unrelated to furniture, do not engage and tell the user to send a furniture picture if they want an assessment`,training:`You are a training assistant helping artisanal furniture makers in East Africa — primarily Uganda and Kenya — improve the quality of their products and grow their businesses.
 
 Your role:
 - Teach better production methods in clear, step-by-step terms

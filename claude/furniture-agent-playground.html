@@ -36,7 +36,7 @@ h1{font-size:18px;font-weight:500;margin-bottom:4px;}
 .api-bar input{flex:1;min-width:200px;border:0.5px solid var(--border-warning);border-radius:var(--radius);padding:6px 10px;font-size:13px;background:var(--surface-2);color:var(--text-primary);font-family:monospace;}
 .api-bar input:focus{outline:none;}
 .api-note{font-size:11px;color:var(--text-warning);width:100%;margin-top:2px;}
-.layout{display:grid;grid-template-columns:320px 1fr;height:660px;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;background:var(--surface-1);}
+.layout{display:grid;grid-template-columns:320px 1fr;height:calc(100vh - 120px);min-height:500px;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;background:var(--surface-1);}
 .sidebar{border-right:0.5px solid var(--border);display:flex;flex-direction:column;overflow:hidden;background:var(--surface-2);}
 .sidebar-tabs{display:flex;border-bottom:0.5px solid var(--border);}
 .stab{flex:1;padding:10px 0;font-size:12px;text-align:center;cursor:pointer;color:var(--text-secondary);border:none;background:none;}
@@ -102,7 +102,7 @@ select:focus,textarea:focus{outline:none;border-color:var(--border-accent);}
   body{padding:12px;}
   .layout{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:auto;}
   .sidebar{border-right:none;border-bottom:0.5px solid var(--border);max-height:300px;}
-  .chat-area{height:500px;}
+  .chat-area{height:calc(100vh - 420px);min-height:300px;}
 }
 </style>
 </head>
