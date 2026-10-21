@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cp /Users/grady/Documents/personal-website/claude/furniture-agent-playground.html /Users/grady/Documents/personal-website/furniture-playground.html)",
+      "Bash(node claude/build.js)",
+      "mcp__visualize__read_me"
+    ]
+  }
+}
