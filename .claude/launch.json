@@ -2,6 +2,12 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "website",
+      "runtimeExecutable": "C:/Users/Grady Killeen/miniconda3/python.exe",
+      "runtimeArgs": ["-m", "http.server", "7892"],
+      "port": 7892
+    },
+    {
       "name": "furniture-playground",
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "7891"],
