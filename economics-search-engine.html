@@ -1,45 +1,50 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
-    <title>Economics Search Engine</title>
-    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css?h=2f5017592099803165df0ae6050729c8">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:400,400i,700,700i,600,600i">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/baguettebox.js/1.10.0/baguetteBox.min.css">
-    <link rel="stylesheet" href="assets/css/styles.min.css?h=ebd6f95904009a297a139802d395213f">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Economics Search Engine | Grady Killeen</title>
+    <meta name="description" content="A custom search engine covering AEA journals, University of Chicago Press journals, the QJE, REStud, Econometrica, and the JDE.">
+    <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap">
+    <link rel="stylesheet" href="assets/css/site.css">
 </head>
 
 <body>
-    <nav class="navbar navbar-light navbar-expand-lg fixed-top bg-white clean-navbar">
-        <div class="container"><a class="navbar-brand logo" href="#">Grady Killeen</a><button data-toggle="collapse" class="navbar-toggler" data-target="#navcol-1"><span class="sr-only">Toggle navigation</span><span class="navbar-toggler-icon"></span></button>
-            <div class="collapse navbar-collapse" id="navcol-1">
-                <ul class="navbar-nav ml-auto">
-                    <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="research.html">Research</a></li>
-                    <li class="nav-item"><a class="nav-link active" href="economics-search-engine.html">Economics Search Engine</a></li>
-                </ul>
+    <header class="site-header">
+        <div class="wrap">
+            <a class="brand" href="index.html">Grady Killeen</a>
+            <nav class="site-nav" aria-label="Main">
+                <a href="index.html">Home</a>
+                <a href="research.html">Research</a>
+                <a href="assets/Killeen-CV.pdf">CV</a>
+                <a href="economics-search-engine.html" aria-current="page">Economics Search Engine</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="wrap">
+            <h1 class="page-title">Economics Search Engine</h1>
+            <p class="page-intro">A Google custom search engine that searches articles from all AEA journals, University of Chicago Press journals, the QJE, REStud, Econometrica, and the JDE. After searching, you can refine results to only the AER, QJE, REStud, JPE, Econometrica, or JDE. Suggestions are welcome by <a data-email-user="gkilleen" data-email-domain="uchicago.edu" href="#">email</a>.</p>
+            <div class="card">
+                <script async src="https://cse.google.com/cse.js?cx=013648599740489814559:oxh1kmkiwsc"></script>
+                <div class="gcse-search"></div>
             </div>
         </div>
-    </nav>
-    <main class="page contact-us-page">
-        <section class="clean-block clean-form dark">
-            <div class="container">
-                <div class="block-heading">
-                    <h2 class="text-info">Economics Search Engine</h2>
-                    <p></p>
-                </div>
-                <p>This page includes a Google custom search engine that searches articles from all AEA journals, University of Chicago Press journals, the QJE, REStud, Econometrica, and the JDE. After searching, you may refine the search to only display articles from the AER, QJE, REStud, JPE, Econometrica, or JDE. Please feel free to submit edit requests through the contact page.</p>
-            </div>
-            <div class="container"><script async src="https://cse.google.com/cse.js?cx=013648599740489814559:oxh1kmkiwsc"></script>
-<div class="gcse-search"></div></div>
-        </section>
     </main>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/baguettebox.js/1.10.0/baguetteBox.min.js"></script>
-    <script src="assets/js/script.min.js?h=037c4117326bceadaedc2681de8afadc"></script>
+
+    <footer class="site-footer">
+        <div class="wrap">
+            <span>&copy; 2026 Grady Killeen &middot; gkilleen [at] uchicago [dot] edu</span>
+            <span><a href="https://github.com/gkilleen33">GitHub</a></span>
+        </div>
+    </footer>
+
+    <script src="assets/js/site.js"></script>
 </body>
 
 </html>
