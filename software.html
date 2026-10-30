@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Software | Grady Killeen</title>
+    <meta name="description" content="Software by Grady Killeen: geGMM, a Python package for GMM estimation with spatial standard errors, and an AI furniture quality verification tool.">
+    <meta property="og:title" content="Software | Grady Killeen">
+    <meta property="og:image" content="https://gkilleen33.github.io/assets/img/headshot.jpg">
+    <meta property="og:url" content="https://gkilleen33.github.io/software.html">
+    <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap">
+    <link rel="stylesheet" href="assets/css/site.css">
+    <noscript><style>.abstract[hidden] { display: block; } .abstract-toggle { display: none; }</style></noscript>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="wrap">
+            <a class="brand" href="index.html">Grady Killeen</a>
+            <nav class="site-nav" aria-label="Main">
+                <a href="index.html">Home</a>
+                <a href="research.html">Research</a>
+                <a href="software.html" aria-current="page">Software</a>
+                <a href="assets/Killeen-CV.pdf">CV</a>
+                <a href="economics-search-engine.html">Economics Search Engine</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="wrap">
+            <h1 class="page-title">Software</h1>
+
+            <section class="paper-section">
+                <article class="paper" id="gegmm">
+                    <h3 class="paper-title"><a href="https://github.com/gkilleen33/gkilleen33.github.io/tree/master/packages/geGMM">geGMM</a></h3>
+                    <span class="paper-note">Python package</span>
+                    <div class="paper-actions">
+                        <button class="btn abstract-toggle" type="button" aria-expanded="false" aria-controls="gegmm-description">Description</button>
+                        <a class="btn" href="https://github.com/gkilleen33/gkilleen33.github.io/tree/master/packages/geGMM">GitHub</a>
+                    </div>
+                    <div class="abstract" id="gegmm-description" hidden>
+                        <p>A Python package for GMM estimation with spatial (Conley) standard errors, built for analysis of the Kenya General Equilibrium Study of cash transfers. It extends the statsmodels GMM class so that moment conditions can be written as strings and variables, instruments, and controls as Patsy formulas, with standard errors that allow for spatial correlation using uniform, Bartlett, or positive-definite kernels. It also includes a tool that selects the spillover radius by minimizing BIC.</p>
+                    </div>
+                </article>
+                <article class="paper" id="furniture-quality-verifier">
+                    <h3 class="paper-title"><a href="https://github.com/gkilleen33/gkilleen33.github.io/tree/master/claude">Furniture Quality Verifier</a></h3>
+                    <span class="paper-note">AI tool &middot; Prototype</span>
+                    <div class="paper-actions">
+                        <button class="btn abstract-toggle" type="button" aria-expanded="false" aria-controls="furniture-quality-verifier-description">Description</button>
+                        <a class="btn" href="https://github.com/gkilleen33/gkilleen33.github.io/tree/master/claude">GitHub</a>
+                    </div>
+                    <div class="abstract" id="furniture-quality-verifier-description" hidden>
+                        <p>An AI assistant, built on Anthropic's Claude models, that helps furniture buyers in East Africa judge quality from photos. It checks joinery, symmetry, cracks, warping, knots, and insect or mold damage, explains in plain language what each problem means for durability, and asks for more photos when it needs a better view. A <a href="furniture-playground.html">testing prototype</a> is available (it requires your own Anthropic API key).</p>
+                    </div>
+                </article>
+            </section>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="wrap">
+            <span>&copy; 2026 Grady Killeen &middot; gkilleen [at] uchicago [dot] edu</span>
+            <span><a href="https://github.com/gkilleen33">GitHub</a></span>
+        </div>
+    </footer>
+
+    <script src="assets/js/site.js"></script>
+</body>
+
+</html>
